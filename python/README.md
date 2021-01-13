@@ -1,80 +1,120 @@
-# [Mapbox](https://www.mapbox.com/)
+# [ArcGIS For Developer](https://developers.arcgis.com)
 
-### Get token to access Mapbox APIs (if you have an API token skip this)
-#### Step 1: Login/Signup
-* Create an accont to access [Mapbox Account Dashboard](https://account.mapbox.com/)
-* Go to signup/login link https://account.mapbox.com/auth/signin/
+### Get token to access ArcGIS APIs (if you have an API key skip this)
+#### Step 1: Get API Token
+* Create an account to access [ArcGIS For Developer](https://developers.arcgis.com/dashboard)
+* go to [signup](https://developers.arcgis.com/sign-up/)
+* if you have an account login at https://developers.arcgis.com/sign-in/
 
-#### Step 2: Creating a token
-* You will be presented with a default token.
-* If you want you can create an application specific token.
+#### Step 2: creating a token
+* Once logged in you can find a temporary token at [ArcGIS For Developer](https://developers.arcgis.com/dashboard)
+* You can also create an application and generate tokens for it.
+* Refer to [Route service with synchronous execution](https://developers.arcgis.com/rest/network/api-reference/route-synchronous-service.htm) to get an in depth idea of various post request 
+  parameters.
 
+With this in place, make a POST request: https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve
+With `payload attributes` with following keys
 
-To get the route polyline make a GET request on 'https://api.mapbox.com/directions/v5/mapbox/driving/'source_longitude+','+source_latitude+';'+destination_longitude+','+destination_latitude+'?geometries=polyline&access_token='+token+'&overview=full'
-
-Example of GET request : https://api.mapbox.com/directions/v5/mapbox/driving/-96.7970,32.7767;-74.0060,40.7128?geometries=polyline&access_token=jk.evgggiejdjks2ZWxjbWFwdXAiLCJhIjoiY2tQ&overview=full
+```
+payload = {
+  "type":"features",
+  "features":  [
+    {
+      "geometry": {               #source coordinates
+        "x": -96.7970,
+        "y": 32.7767
+      }
+    },
+    {
+      "geometry": {               #destination coordinates
+        "x": -74.0060, 
+        "y": 40.7128
+      }
+    }
+  ]
+}
+```
 
 ### Note:
-* We will be sending `geometries` as `polyline` and `overview` as `full`.
-* Setting overview as full sends us complete route. Default value for `overview` is `simplified`, which is an approximate (smoothed) path of the resulting directions.
-* Mapbox accepts source and destination, as semicolon seperated
-  `{longitude},{latitud}`.
+You should see full path as series of coordinates, we convert it to
+`polyline`
 
 ```python
+import polyline as Poly
+response_from_arcgis=requests.post(arcgis_url,data = {'f': 'json','token': token_Esri,'stops':json.dumps(payload)}).json()
+coordinate_list=[i[::-1] for i in response_from_arcgis['routes']['features'][0]['geometry']['paths'][0]]
+polyline_from_Arcgis=Poly.encode(coordinate_list)
+```
 
+```python
 #Importing modules
 import json
 import requests
+import os
+import polyline as Poly
 
-#API key for Mapbox
-token=''
+'''Fetching Polyline from Esri-Arcgis-Maps'''
 
-#Source and Destination Coordinates
-source_longitude='-96.7970'
-source_latitude='32.7767'
-destination_longitude='-74.0060'
-destination_latitude='40.7128'
+#API key for Esri-Arcgis-Maps
+token_Esri=os.environ.get('Esri-Arcgis-Maps_API_Key')
 
-#Query Mapbox with Key and Source-Destination coordinates
-url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
+#url to post request
+arcgis_url = "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve"
 
-#converting the response to json
-response=requests.get(url).json()
+#prepare payload in similar structure and update feature coordinates 
+payload = {
+  "type":"features",
+  "features":  [
+    {
+      "geometry": {                #source coordinates '''Dallas, TX'''
+        "x": -96.7970,
+        "y": 32.7767
+      }
+    },
+    {
+      "geometry": {               #destination coordinates '''New York, NY'''
+        "x": -74.0060, 
+        "y": 40.7128
+      }
+    }
+  ]
+}
 
-#checking for errors in response 
-if str(response).find('message')==-1:
-    pass
-else:
-    raise Exception(response['message'])
+#response file after post to the give link using payload as value for stop and providing other parameters
+response_from_arcgis=requests.post(arcgis_url,data = {'f': 'json','token': token_Esri,'stops':json.dumps(payload)}).json()
 
-#The response is a dict where Polyline is inside first element named "routes" , first element is a list , go to 1st element there
-#you will find a key named "geometry" which is essentially the Polyline''' 
+#making a list for all coordinates to make polyline NOTE ARCGIS provides lon-lat pairs but we need lat-lon pairs
+coordinate_list=[i[::-1] for i in response_from_arcgis['routes']['features'][0]['geometry']['paths'][0]]
 
-#Extracting polyline
-polyline=response["routes"][0]['geometry']
-
+#Encoding coordinate lists into polyline
+polyline_from_Arcgis=Poly.encode(coordinate_list)
 ```
 
 Note:
 
-We extracted the polyline for a route from Mapbox API
+We extracted the polyline for a route from ArcGIS Routing API.
 
 We need to send this route polyline to TollGuru API to receive toll information
 
 ## [TollGuru API](https://tollguru.com/developers/docs/)
 
 ### Get key to access TollGuru polyline API
-* Create a dev account to receive a free key from TollGuru https://tollguru.com/developers/get-api-key
-* Suggest adding `vehicleType` parameter. Tolls for cars are different than trucks and therefore if `vehicleType` is not specified, may not receive accurate tolls. For example, tolls are generally higher for trucks than cars. If `vehicleType` is not specified, by default tolls are returned for 2-axle cars. 
+* create a dev account to receive a [free key from TollGuru](https://tollguru.com/developers/get-api-key)
+* suggest adding `vehicleType` parameter. Tolls for cars are different than trucks and therefore if `vehicleType` is not specified, may not receive accurate tolls. For example, tolls are generally higher for trucks than cars. If `vehicleType` is not specified, by default tolls are returned for 2-axle cars. 
 * Similarly, `departure_time` is important for locations where tolls change based on time-of-the-day.
 
-This snippet can be added at end of the above code to get rates and other details.
+the last line can be changed to following
+
 ```python
 
-#API key for Tollguru
-Tolls_Key = ''
 
-#Tollguru API url
+
+'''Calling Tollguru API'''
+
+#API key for Tollguru
+Tolls_Key = os.environ.get('TollGuru_API_Key')
+
+#Tollguru querry url
 Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
 
 #Tollguru resquest parameters
@@ -83,8 +123,8 @@ headers = {
             'x-api-key': Tolls_Key
           }
 params = {
-            'source': "mapbox",
-            'polyline': polyline ,                      #this is polyline that we fetched from the mapping service      
+            'source': "esri",
+            'polyline': polyline_from_Arcgis ,          # this is the encoded polyline that we created     
             'vehicleType': '2AxlesAuto',                
             'departure_time' : "2021-01-05T09:46:08Z"   
         }
@@ -92,14 +132,20 @@ params = {
 #Requesting Tollguru with parameters
 response_tollguru= requests.post(Tolls_URL, json=params, headers=headers).json()
 
-#checking for errors if no printing rates
+#checking for errors or printing rates
 if str(response_tollguru).find('message')==-1:
     print('\n The Rates Are ')
     #extracting rates from Tollguru response is no error
     print(*response_tollguru['summary']['rates'].items(),end="\n\n")
 else:
     raise Exception(response_tollguru['message'])
-    
 ```
 
-Whole working code can be found in MapBox_Polyline.py file.
+The working code can be found in Esri-Arcgis-Maps.py file.
+
+## License
+ISC License (ISC). Copyright 2020 &copy;TollGuru. https://tollguru.com/
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
