@@ -141,7 +141,7 @@ else:
     raise Exception(response_tollguru['message'])
 ```
 
-The working code can be found in index.js file.
+The working code can be found in Esri-Arcgis-Maps.py file.
 
 ## License
 ISC License (ISC). Copyright 2020 &copy;TollGuru. https://tollguru.com/
