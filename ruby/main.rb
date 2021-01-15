@@ -3,10 +3,18 @@ require 'json'
 require "fast_polylines"
 require 'uri'
 
-# Source Details Hash - X >> Longitude and y >> Latitude
-SOURCE = { "x" => -96.7970, "y" => 32.7767 }
-# Destination Details Hash - X >> Longitude and y >> Latitude
-DESTINATION = { "x" => -74.0060, "y" => 40.7128 }
+# Using Geocode API to get latitude-longitude values
+def get_coord_hash(loc)
+    params = {"f"=> "json",'singleLine' => loc, 'maxlocations' => 1}
+    geocoding_url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+    coord = JSON.parse(HTTParty.post(geocoding_url,:body => URI.encode_www_form(params)).body)
+    return  coord['candidates'].pop['location']
+end
+
+# # Source Details Hash - X >> Longitude and y >> Latitude
+SOURCE = get_coord_hash("Dallas, TX")
+# # Destination Details Hash - X >> Longitude and y >> Latitude
+DESTINATION = get_coord_hash("New York, NY")
 
 # POST Request to ARCGIS for Coordinate Pairs
 KEY = ENV['ARCGIS_KEY']

@@ -13,7 +13,22 @@
 With this in place, make a POST request: https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve
 With `content-type: 'application/x-www-form-urlencoded'` and body with
 following keys
-* Here SOURCE and DESTINATION are hashes with (x,y) pairs containing longitude and latitude coords. Also use `URI.encode_www_form` to convert Hash to form
+* Here SOURCE and DESTINATION are hashes with (x,y) pairs containing longitude and latitude coords. To convert source location to coordinate pairs we use ArcGis geocode API.Also use `URI.encode_www_form` to convert Hash to form
+
+```ruby
+# Using Geocode API to get latitude-longitude values
+def get_coord_hash(loc)
+    params = {"f"=> "json",'singleLine' => loc, 'maxlocations' => 1}
+    geocoding_url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+    coord = JSON.parse(HTTParty.post(geocoding_url,:body => URI.encode_www_form(params)).body)
+    return  coord['candidates'].pop['location']
+end
+
+# # Source Details Hash - X >> Longitude and y >> Latitude
+SOURCE = get_coord_hash("Dallas, TX")
+# # Destination Details Hash - X >> Longitude and y >> Latitude
+DESTINATION = get_coord_hash("New York, NY")
+```
 
 ```
 arcgis_headers = {'content-type' => 'application/x-www-form-urlencoded'}
