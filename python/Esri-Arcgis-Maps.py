@@ -86,7 +86,6 @@ polyline_from_arcgis=get_polyline_from_arcgis(source_longitude,source_latitude,d
 rates_from_tollguru=get_rates_from_tollguru(polyline_from_arcgis)
 
 #Print the rates of all the available modes of payment
-#Print the rates of all the available modes of payment
 if rates_from_tollguru=={}:
     print("The route doesn't have tolls")
 else:
