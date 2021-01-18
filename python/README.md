@@ -15,6 +15,12 @@
 #### Step 3: Getting Geocodes for Source and Destination from ArcGIS
 * Use the following code to call ArcGIS API to fetch the geocode of the locations
 ```python
+import json
+import requests
+
+#API key for Esri-Arcgis-Maps
+Token_Esri=os.environ.get('Esri-Arcgis-Maps_API_Key')
+
 def get_geocodes_from_arcgis(address): 
     url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates" 
     para={'f': 'json' , 'singleLine' : address , 'outFields' : 'Match_addr,Addr_type'}
