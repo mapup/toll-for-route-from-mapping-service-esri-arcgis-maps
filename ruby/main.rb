@@ -2,10 +2,11 @@ require 'HTTParty'
 require 'json'
 require "fast_polylines"
 require 'uri'
+require 'cgi'
 
 # Using Geocode API to get latitude-longitude values
 def get_coord_hash(loc)
-    params = {"f"=> "json",'singleLine' => loc, 'maxlocations' => 1}
+    params = {"f"=> "json",'singleLine' => CGI::escape(loc), 'maxlocations' => 1}
     geocoding_url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
     coord = JSON.parse(HTTParty.post(geocoding_url,:body => URI.encode_www_form(params)).body)
     return  coord['candidates'].pop['location']
