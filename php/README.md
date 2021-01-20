@@ -114,8 +114,10 @@ $points = $data['routes']['features']['0']['geometry']['paths']['0'];
 ```
 
 ### Note:
-You should see full path as series of coordinates which we are storing in `$points`, we convert it to
+* You should see full path as series of coordinates which we are storing in `$points`, we convert it to
 `polyline`
+* Code to get the `polyline` can be found at https://github.com/emcconville/google-map-polyline-encoding-tool
+
 
 ```php
 
