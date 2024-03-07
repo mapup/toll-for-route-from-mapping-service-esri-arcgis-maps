@@ -12,10 +12,27 @@ TOLLGURU_API_KEY = os.environ.get("TOLLGURU_API_KEY")
 TOLLGURU_API_URL = "https://apis.tollguru.com/toll/v2"
 POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service"
 
+source = "Philadelphia, PA"
+destination = "New York, NY"
 
-# Fetching Geocodes from Esri-Arcgis-Maps
+# Explore https://tollguru.com/toll-api-docs to get best of all the parameter that tollguru has to offer
+request_parameters = {
+    "vehicle": {
+        "type": "2AxlesAuto",
+    },
+    # Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
+    "departure_time": "2021-01-05T09:46:08Z",
+}
+
+
 def get_geocodes_from_arcgis(address):
-    params = {"f": "json", "singleLine": address, "outFields": "Match_addr,Addr_type"}
+    """Fetching Geocodes from Esri-Arcgis-Maps"""
+
+    params = {
+        "f": "json",
+        "singleLine": address,
+        "outFields": "Match_addr,Addr_type",
+    }
     longitude, latitude = (
         requests.get(ESRI_ARCGIS_GEOCODE_API_URL, params=params)
         .json()["candidates"][0]["location"]
@@ -24,10 +41,11 @@ def get_geocodes_from_arcgis(address):
     return (longitude, latitude)  # note it returns long lat
 
 
-# Fetching Polyline from Esri-Arcgis-Maps
 def get_polyline_from_arcgis(
     source_longitude, source_latitude, destination_longitude, destination_latitude
 ):
+    """Fetching Polyline from Esri-Arcgis-Maps"""
+
     # prepare payload in similar structure and update feature coordinates
     payload = {
         "type": "features",
@@ -70,11 +88,9 @@ def get_rates_from_tollguru(polyline):
     # Tollguru resquest parameters
     headers = {"Content-type": "application/json", "x-api-key": TOLLGURU_API_KEY}
     params = {
-        # Explore https://tollguru.com/developers/docs/ to get best of all the parameter that tollguru has to offer
+        **request_parameters,
         "source": "esri",
         "polyline": polyline,  # this is the encoded polyline that we made
-        "vehicleType": "2AxlesAuto",  #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
-        "departure_time": "2021-01-05T09:46:08Z",  #'''Visit https://en.wikipedia.org/wiki/Unix_time to know the time format'''
     }
     # Requesting Tollguru with parameters
     response_tollguru = requests.post(
@@ -89,10 +105,8 @@ def get_rates_from_tollguru(polyline):
 
 """Program Starts"""
 # Step 1 :Getting Geocodes from Arcgis for Source and Destination
-source_longitude, source_latitude = get_geocodes_from_arcgis(
-    "Dallas, TX"
-)  # Note it return Long-Lat pair!
-destination_longitude, destination_latitude = get_geocodes_from_arcgis("Newyork, NY")
+source_longitude, source_latitude = get_geocodes_from_arcgis(source)
+destination_longitude, destination_latitude = get_geocodes_from_arcgis(destination)
 
 # Step 2 : Get Polyline from Arcgis
 polyline_from_arcgis = get_polyline_from_arcgis(

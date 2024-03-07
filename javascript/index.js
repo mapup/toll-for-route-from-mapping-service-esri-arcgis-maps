@@ -4,12 +4,21 @@ const polyline = require("polyline");
 const ESRI_ARCGIS_API_KEY = process.env.ESRI_ARCGIS_API_KEY;
 const ESRI_ARCGIS_API_URL = 'https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve';
 
-const TOLLGURU_API_KEY = process.env.TOLLGURU_KEY;
-const TOLLSGURU_API_URL = 'https://apis.tollguru.com/toll/v2'
+const TOLLGURU_API_KEY = process.env.TOLLGURU_API_KEY;
+const TOLLGURU_API_URL = 'https://apis.tollguru.com/toll/v2'
 const POLYLINE_ENDPOINT = 'complete-polyline-from-mapping-service'
 
-const source = { x: -96.7970, y: 32.7767, }; // Dallas, TX
+const source = { x: -75.16218, y: 39.95222, }; // Philadelphia, PA
 const destination = { x: -74.0060, y: 40.7128 }; // New York, NY
+
+// Explore https://tollguru.com/toll-api-docs to get the best of all the parameters that tollguru has to offer
+const requestParameters = {
+  "vehicle": {
+    "type": "2AxlesAuto",
+  },
+  // Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
+  "departure_time": "2021-01-05T09:46:08Z",
+}
 
 const flatten = (arr, x) => arr.concat(x);
 
@@ -40,20 +49,23 @@ const getRoute = (cb) => request.post({
 }, cb);
 
 const handleRoute = (e, r, body) => {
-  console.log(body);
   const _polyline = getPolyline(body);
   console.log(_polyline);
 
   request.post({
-    url: `${TOLLSGURU_API_URL}/${POLYLINE_ENDPOINT}`,
+    url: `${TOLLGURU_API_URL}/${POLYLINE_ENDPOINT}`,
     headers: {
       'content-type': 'application/json',
       'x-api-key': TOLLGURU_API_KEY
     },
-    body: JSON.stringify({ source: "esri", polyline: _polyline })
+    body: JSON.stringify({
+      source: "esri",
+      polyline: _polyline,
+      ...requestParameters,
+    })
   }, (e, r, body) => {
     console.log(e);
-    console.log(body)
+    console.log(JSON.parse(body))
   })
 }
 

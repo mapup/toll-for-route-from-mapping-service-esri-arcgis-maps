@@ -7,8 +7,17 @@ $TOLLGURU_API_KEY = getenv('TOLLGURU_API_KEY');
 $TOLLGURU_API_URL = 'https://apis.tollguru.com/toll/v2';
 $POLYLINE_ENDPOINT = 'complete-polyline-from-mapping-service';
 
-$source = array('x' => -96.7970, 'y' => 32.7767); // Dallas, TX
+$source = array('x' => -75.16218, 'y' => 39.95222); // Philadelphia, PA
 $destination = array('x' => -74.0060, 'y' => 40.7128); // New York, NY
+
+// Explore https://tollguru.com/toll-api-docs to get the best of all the parameters that tollguru has to offer
+$request_parameters = array(
+    "vehicle" => array(
+        "type" => "2AxlesAuto",
+    ),
+    // Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
+    "departure_time" => "2021-01-05T09:46:08Z",
+);
 
 //connecting to esri...
 $esri = curl_init();
@@ -69,10 +78,10 @@ $curl = curl_init();
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
-
 $postdata = array(
-  "source" => "here",
-  "polyline" => $polyline
+  "source" => "esri",
+  "polyline" => $polyline,
+  ...$request_parameters,
 );
 
 //json encoding source and polyline to send as postfields...
