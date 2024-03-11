@@ -1,28 +1,37 @@
 <?php
 
+$ESRI_ARCGIS_API_KEY = getenv('ESRI_ARCGIS_API_KEY');
+$ESRI_ARCGIS_API_URL = 'https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve';
+
+$TOLLGURU_API_KEY = getenv('TOLLGURU_API_KEY');
+$TOLLGURU_API_URL = 'https://apis.tollguru.com/toll/v2';
+$POLYLINE_ENDPOINT = 'complete-polyline-from-mapping-service';
+
+$source = array('x' => -75.16218, 'y' => 39.95222); // Philadelphia, PA
+$destination = array('x' => -74.0060, 'y' => 40.7128); // New York, NY
+
+// Explore https://tollguru.com/toll-api-docs to get the best of all the parameters that tollguru has to offer
+$request_parameters = array(
+    "vehicle" => array(
+        "type" => "2AxlesAuto",
+    ),
+    // Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
+    "departure_time" => "2021-01-05T09:46:08Z",
+);
+
 //connecting to esri...
 $esri = curl_init();
 
 $stop = '{
   "type":"features",
   "features":  [
-    {
-      "geometry": {
-        "x": -96.7970,
-        "y": 32.7767
-      }
-    },
-    {
-      "geometry": {
-        "x": -74.0060, 
-        "y": 40.7128
-      }
-    }
+    { "geometry": ' . json_encode($source) . ' },
+    { "geometry": ' . json_encode($destination) . ' }
   ]
 }';
 
 curl_setopt_array($esri, array(
-  CURLOPT_URL => 'https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve',
+  CURLOPT_URL => $ESRI_ARCGIS_API_URL,
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
@@ -34,7 +43,7 @@ curl_setopt_array($esri, array(
   	'content-type' => 'application/x-www-form-urlencoded'),
   CURLOPT_POSTFIELDS => array(
     'f' => 'json',
-    'token' => 'esri_arcgis_token',
+    'token' => $ESRI_ARCGIS_API_KEY,
     'stops' => $stop)
 ));
 
@@ -69,29 +78,29 @@ $curl = curl_init();
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
-
 $postdata = array(
-  "source" => "gmaps",
-  "polyline" => $polyline
+  "source" => "esri",
+  "polyline" => $polyline,
+  ...$request_parameters,
 );
 
 //json encoding source and polyline to send as postfields...
 $encode_postData = json_encode($postdata);
 
 curl_setopt_array($curl, array(
-CURLOPT_URL => "https://dev.tollguru.com/v1/calc/route",
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_ENCODING => "",
-CURLOPT_MAXREDIRS => 10,
-CURLOPT_TIMEOUT => 300,
-CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-CURLOPT_CUSTOMREQUEST => "POST",
+  CURLOPT_URL => $TOLLGURU_API_URL . "/" . $POLYLINE_ENDPOINT,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => "",
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 300,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => "POST",
 
-//sending ptv polyline to tollguru..
-CURLOPT_POSTFIELDS => $encode_postData,
-CURLOPT_HTTPHEADER => array(
-              "content-type: application/json",
-              "x-api-key: tollguru_api_key"),
+  //sending ptv polyline to tollguru..
+  CURLOPT_POSTFIELDS => $encode_postData,
+  CURLOPT_HTTPHEADER => array(
+    "content-type: application/json",
+    "x-api-key: ".$TOLLGURU_API_KEY),
 ));
 
 $response = curl_exec($curl);
