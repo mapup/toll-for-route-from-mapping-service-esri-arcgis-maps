@@ -12,6 +12,7 @@ TOLLGURU_API_KEY = os.environ.get("TOLLGURU_API_KEY")
 TOLLGURU_API_URL = "https://apis.tollguru.com/toll/v2"
 POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service"
 
+# From and To locations
 source = "Philadelphia, PA"
 destination = "New York, NY"
 
@@ -23,7 +24,6 @@ request_parameters = {
     # Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
     "departure_time": "2021-01-05T09:46:08Z",
 }
-
 
 def get_geocodes_from_arcgis(address):
     """Fetching Geocodes from Esri-Arcgis-Maps"""
@@ -79,9 +79,7 @@ def get_polyline_from_arcgis(
     polyline_from_arcgis = poly.encode(coordinate_list)
     return polyline_from_arcgis
 
-
 """Calling Tollguru API"""
-
 
 def get_rates_from_tollguru(polyline):
     # Tollguru querry url
@@ -101,7 +99,6 @@ def get_rates_from_tollguru(polyline):
         return response_tollguru["route"]["costs"]
     else:
         raise Exception(response_tollguru["message"])
-
 
 """Program Starts"""
 # Step 1 :Getting Geocodes from Arcgis for Source and Destination

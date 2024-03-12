@@ -50,7 +50,6 @@ const getRoute = (cb) => request.post({
 
 const handleRoute = (e, r, body) => {
   const _polyline = getPolyline(body);
-  console.log(_polyline);
 
   request.post({
     url: `${TOLLGURU_API_URL}/${POLYLINE_ENDPOINT}`,
