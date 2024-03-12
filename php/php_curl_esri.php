@@ -67,12 +67,12 @@ foreach ($points as $i) {
   array_push($revPoints, $i['1']);
   array_push($revPoints, $i['0']);
 }
-//creating polyline...
+// Creating polyline...
 require_once(__DIR__.'/Polyline.php');
 $polyline = Polyline::encode($revPoints);
 
 
-//using tollguru API..
+// Using TollGuru API
 $curl = curl_init();
 
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
@@ -84,7 +84,7 @@ $postdata = array(
   ...$request_parameters,
 );
 
-//json encoding source and polyline to send as postfields...
+// JSON encoded source and polyline to send as postfields
 $encode_postData = json_encode($postdata);
 
 curl_setopt_array($curl, array(
@@ -95,8 +95,6 @@ curl_setopt_array($curl, array(
   CURLOPT_TIMEOUT => 300,
   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
   CURLOPT_CUSTOMREQUEST => "POST",
-
-  //sending ptv polyline to tollguru..
   CURLOPT_POSTFIELDS => $encode_postData,
   CURLOPT_HTTPHEADER => array(
     "content-type: application/json",
@@ -114,7 +112,7 @@ if ($err) {
     echo "200 : OK\n";
 }
 
-//response from tollguru..
+// Response from TollGuru
 $data = json_decode($response, true);
 print_r($data['route']['costs']);
 ?>
